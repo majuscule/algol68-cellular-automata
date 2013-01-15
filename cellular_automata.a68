@@ -12,7 +12,6 @@ COMMENT
 PROC say_hello = VOID: BEGIN
   # this is a friendly string, don't worry about the bounds! #
   # but it wants an initial length anyway. #
-  # the := operator initializes #
   FLEX [11] CHAR banner := "HELLO ALGOL";
   banner +:= " 68";
   print ( (banner, newline, newline) )
@@ -36,46 +35,45 @@ MODE CELL = STRUCT (
 # arrays are 1-indexed #
 MODE UNIVERSE = [size][size] CELL;
 
-COMMENT
-PROC tick = (UNIVERSE universe) VOID: BEGIN
+PROC tick = (REF UNIVERSE universe) VOID: BEGIN
   # FOR loops are 1-indexed #
   FOR i TO size DO
     FOR ii TO size DO
-      INT neighbors = 0;
-      # no logic specific operators :-/ #
+      INT neighbors := 0;
       IF i = 1 OR i = size
         OR ii = 1 OR ii = size THEN
         # use 0 or wrap-around values for literal border cases #
         SKIP
       ELSE
         # this should loop around the cells neighbors #
-        IF alive OF universe[i][ii] THEN
-          neighbors = neighbors + 1;
-          SKIP
+        IF alive OF REF UNIVERSE(universe)[i][ii] THEN
+          neighbors +:= 1
         FI
       FI;
       # the rules of life! #
       IF neighbors < 2 OR neighbors > 3 THEN
-        alive OF universe[i][ii] = FALSE
+        alive OF REF UNIVERSE(universe)[i][ii] := FALSE
       ELSE
         IF neighbors = 3 THEN
-          alive OF universe[i][ii] = TRUE
+          alive OF REF UNIVERSE(universe)[i][ii] := TRUE
         FI
       FI;
+      print ( neighbors )
+      #
       IF alive OF universe[i][i] THEN
         print("1") ELSE print("0") FI
+      #
     OD;
     print(newline)
   OD
 END;
-COMMENT
 
 PROC init = (REF UNIVERSE universe) VOID: BEGIN
   FOR i TO size DO
     FOR ii TO size DO
       # random, like print, is a function in the standard prelude #
-      alive OF REF UNIVERSE(universe)[i][ii] := random > .5;
-    OD;
+      alive OF REF UNIVERSE(universe)[i][ii] := random > .5
+    OD
   OD
 COMMENT
   When I was using this function to return a REF to a variable
@@ -104,13 +102,15 @@ main:
 
   FOR i TO size DO
     FOR ii TO size DO
-      IF alive OF universe[i][ii] THEN
-        print("1") ELSE print("0") FI
+       # ternary operator #
+       ( alive OF universe[i][ii] | print("1") | print("0") )
     OD;
     print(newline)
   OD;
 
   print( ( newline, newline ) );
+
+  tick(game_of_life)
 
 #
   FOR i TO generations DO
