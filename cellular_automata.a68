@@ -1,0 +1,53 @@
+INT size = 50;
+INT generations = 50;
+
+# a MODE is a type definition #
+# MODE identifiers must be in CAPITALS #
+MODE CELL = STRUCT (
+  BOOL alive,
+  INT x,
+  INT y
+);
+
+MODE UNIVERSE = [size][size] CELL;
+
+PROC version = (INT i) VOID: BEGIN
+  print ( ("HELLO ALGOL", i, newline) )
+END;
+
+PROC tick = (UNIVERSE game_of_life) VOID: BEGIN
+  # FOR loops are 1-indexed #
+  FOR i TO size DO
+    FOR ii TO size DO
+      print((i, newline))
+    OD
+  OD
+END;
+
+PROC init = UNIVERSE: BEGIN
+  UNIVERSE universe;
+  FOR i TO size DO
+    FOR ii TO size DO
+      alive OF universe[i][i] := random > .5;
+      print(alive OF universe[i][i])
+    OD;
+    print(newline)
+  OD;
+  universe
+END;
+
+
+# main entry label is unnecessary #
+main:
+# parethesis are intechangable with BEGIN..END blocks #
+(
+  # no capitals in variable names allowed #
+  UNIVERSE game_of_life = init;
+  #tick(game_of_life);#
+#
+  FOR i TO generations DO
+    tick(i)
+  OD;
+#
+  SKIP
+)
