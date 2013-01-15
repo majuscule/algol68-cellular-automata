@@ -45,10 +45,15 @@ PROC tick = (REF UNIVERSE universe) VOID: BEGIN
         # use 0 or wrap-around values for literal border cases #
         SKIP
       ELSE
-        # this should loop around the cells neighbors #
-        IF alive OF REF UNIVERSE(universe)[i][ii] THEN
-          neighbors +:= 1
-        FI
+        # loop around the cells neighbors clockwise using ternary operators #
+        (alive OF REF UNIVERSE(universe)[i+1][ii  ] | neighbors +:= 1 | SKIP );
+        (alive OF REF UNIVERSE(universe)[i+1][ii+1] | neighbors +:= 1 | SKIP );
+        (alive OF REF UNIVERSE(universe)[i  ][ii+1] | neighbors +:= 1 | SKIP );
+        (alive OF REF UNIVERSE(universe)[i-1][ii+1] | neighbors +:= 1 | SKIP );
+        (alive OF REF UNIVERSE(universe)[i-1][ii  ] | neighbors +:= 1 | SKIP );
+        (alive OF REF UNIVERSE(universe)[i-1][ii-1] | neighbors +:= 1 | SKIP );
+        (alive OF REF UNIVERSE(universe)[i  ][ii-1] | neighbors +:= 1 | SKIP );
+        (alive OF REF UNIVERSE(universe)[i+1][ii-1] | neighbors +:= 1 | SKIP )
       FI;
       # the rules of life! #
       IF neighbors < 2 OR neighbors > 3 THEN
@@ -58,11 +63,8 @@ PROC tick = (REF UNIVERSE universe) VOID: BEGIN
           alive OF REF UNIVERSE(universe)[i][ii] := TRUE
         FI
       FI;
-      print ( neighbors )
-      #
-      IF alive OF universe[i][i] THEN
+      IF alive OF universe[i][ii] THEN
         print("1") ELSE print("0") FI
-      #
     OD;
     print(newline)
   OD
@@ -102,8 +104,8 @@ main:
 
   FOR i TO size DO
     FOR ii TO size DO
-       # ternary operator #
-       ( alive OF universe[i][ii] | print("1") | print("0") )
+      IF alive OF universe[i][ii] THEN
+        print("1") ELSE print("0") FI
     OD;
     print(newline)
   OD;
