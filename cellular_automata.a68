@@ -20,7 +20,7 @@ END;
 # the universe will be a size * size grid #
 INT size := 10;
 # and we will enumerate over this many generations #
-INT generations := 50;
+INT generations := 2;
 
 # a MODE is a type definition #
 # MODE identifiers must be in CAPITALS #
@@ -36,6 +36,13 @@ MODE CELL = STRUCT (
 MODE UNIVERSE = [size][size] CELL;
 
 PROC tick = (REF UNIVERSE universe) VOID: BEGIN
+  # updates to the universe must be atomic by generation,
+    meaning if a cell is reanimated, it is not counted as such
+    by it's adjacent cells until the next generation. to avoid
+    this, we create a representative 2D array in scope. still using
+    the reference so we don't have to worry about keeping the rest
+    of the structure intact #
+  [size][size] BOOL cells;
   # FOR loops are 1-indexed #
   FOR i TO size DO
     FOR ii TO size DO
@@ -69,26 +76,33 @@ PROC tick = (REF UNIVERSE universe) VOID: BEGIN
       FI;
       # the rules of life! #
       IF neighbors < 2 OR neighbors > 3 THEN
-        alive OF REF UNIVERSE(universe)[i][ii] := FALSE
+        cells[i][ii] := FALSE
       ELSE
         IF neighbors = 3 THEN
-          alive OF REF UNIVERSE(universe)[i][ii] := TRUE
+          cells[i][ii] := TRUE
+        ELSE
+          cells[i][ii] := alive OF REF UNIVERSE(universe)[i][ii]
         FI
       FI;
-      IF alive OF universe[i][ii] THEN
+      IF cells[i][ii] THEN
         print("1") ELSE print("0") FI
     OD;
     print(newline)
-  OD
+  OD;
+  # update universe to the next generation (stored in cells) by reference #
+  FOR i TO size DO FOR ii TO size DO alive OF REF UNIVERSE(universe)[i][ii] := cells[i][ii] OD OD
 END;
 
-PROC init = (REF UNIVERSE universe) VOID: BEGIN
+PROC init = UNIVERSE: BEGIN
+  UNIVERSE universe;
   FOR i TO size DO
     FOR ii TO size DO
       # random, like print, is a function in the standard prelude #
-      alive OF REF UNIVERSE(universe)[i][ii] := random > .5
+      alive OF universe[i][ii] := random > .5
     OD
-  OD
+  OD;
+  # the last thing said is the return value #
+  universe
 COMMENT
   When I was using this function to return a REF to a variable
   declared in this function, I got the error:
@@ -109,10 +123,7 @@ main:
   # don't use parenthesis on a procedure call if there are no arguments #
   say_hello;
 
-  # no capitals in variable names allowed #
-  UNIVERSE universe;
-  REF UNIVERSE game_of_life := universe;
-  init(game_of_life);
+  UNIVERSE universe := init();
 
   FOR i TO size DO
     FOR ii TO size DO
@@ -124,13 +135,9 @@ main:
 
   print( ( newline, newline ) );
 
-  tick(game_of_life)
-
-#
   FOR i TO generations DO
-    tick(game_of_life);
+    tick(universe);
     print( ( newline, newline ) )
-  OD;
-#
+  OD
 
 )
