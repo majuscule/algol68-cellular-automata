@@ -1,53 +1,122 @@
-INT size = 50;
-INT generations = 50;
+#
+  this is a comment
+#
+COMMENT
+  and so is this.
+  don't nest comments of the same type!
+COMMENT
+
+# this is a basic procedure. arguments are optional. it goes like this:
+  PROC name = (ARGUMENT_TYPE ARGUMENT_NAME) RETURN_TYPE: BEGIN
+#
+PROC say_hello = VOID: BEGIN
+  # this is a friendly string, don't worry about the bounds! #
+  # but it wants an initial length anyway. #
+  # the := operator initializes #
+  FLEX [11] CHAR banner := "HELLO ALGOL";
+  banner +:= " 68";
+  print ( (banner, newline, newline) )
+END;
+
+# the universe will be a size * size grid #
+INT size := 10;
+# and we will enumerate over this many generations #
+INT generations := 50;
 
 # a MODE is a type definition #
 # MODE identifiers must be in CAPITALS #
 MODE CELL = STRUCT (
   BOOL alive,
+  # this struct is kinda silly, but it's good to know how.
+    maybe it'l come in handy if we wanna draw these on something #
   INT x,
   INT y
 );
 
+# arrays are 1-indexed #
 MODE UNIVERSE = [size][size] CELL;
 
-PROC version = (INT i) VOID: BEGIN
-  print ( ("HELLO ALGOL", i, newline) )
-END;
-
-PROC tick = (UNIVERSE game_of_life) VOID: BEGIN
+COMMENT
+PROC tick = (UNIVERSE universe) VOID: BEGIN
   # FOR loops are 1-indexed #
   FOR i TO size DO
     FOR ii TO size DO
-      print((i, newline))
-    OD
-  OD
-END;
-
-PROC init = UNIVERSE: BEGIN
-  UNIVERSE universe;
-  FOR i TO size DO
-    FOR ii TO size DO
-      alive OF universe[i][i] := random > .5;
-      print(alive OF universe[i][i])
+      INT neighbors = 0;
+      # no logic specific operators :-/ #
+      IF i = 1 OR i = size
+        OR ii = 1 OR ii = size THEN
+        # use 0 or wrap-around values for literal border cases #
+        SKIP
+      ELSE
+        # this should loop around the cells neighbors #
+        IF alive OF universe[i][ii] THEN
+          neighbors = neighbors + 1;
+          SKIP
+        FI
+      FI;
+      # the rules of life! #
+      IF neighbors < 2 OR neighbors > 3 THEN
+        alive OF universe[i][ii] = FALSE
+      ELSE
+        IF neighbors = 3 THEN
+          alive OF universe[i][ii] = TRUE
+        FI
+      FI;
+      IF alive OF universe[i][i] THEN
+        print("1") ELSE print("0") FI
     OD;
     print(newline)
-  OD;
-  universe
+  OD
 END;
+COMMENT
 
+PROC init = (REF UNIVERSE universe) VOID: BEGIN
+  FOR i TO size DO
+    FOR ii TO size DO
+      # random, like print, is a function in the standard prelude #
+      alive OF REF UNIVERSE(universe)[i][ii] := random > .5;
+    OD;
+  OD
+COMMENT
+  When I was using this function to return a REF to a variable
+  declared in this function, I got the error:
+    REF UNIVERSE value is exported out of its scope
+  Does this mean no constructors or closures?
+COMMENT
+#
+  REF UNIVERSE universe_ref := universe;
+  universe_ref
+#
+END;
 
 # main entry label is unnecessary #
 main:
-# parethesis are intechangable with BEGIN..END blocks #
+# parethesis are interchangable with BEGIN..END blocks #
 (
+
+  # don't use parenthesis on a procedure call if there are no arguments #
+  say_hello;
+
   # no capitals in variable names allowed #
-  UNIVERSE game_of_life = init;
-  #tick(game_of_life);#
+  UNIVERSE universe;
+  REF UNIVERSE game_of_life := universe;
+  init(game_of_life);
+
+  FOR i TO size DO
+    FOR ii TO size DO
+      IF alive OF universe[i][ii] THEN
+        print("1") ELSE print("0") FI
+    OD;
+    print(newline)
+  OD;
+
+  print( ( newline, newline ) );
+
 #
   FOR i TO generations DO
-    tick(i)
+    tick(game_of_life);
+    print( ( newline, newline ) )
   OD;
 #
-  SKIP
+
 )
