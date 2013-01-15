@@ -83,14 +83,15 @@ PROC tick = (REF UNIVERSE universe) VOID: BEGIN
         ELSE
           cells[i][ii] := alive OF REF UNIVERSE(universe)[i][ii]
         FI
-      FI;
-      IF cells[i][ii] THEN
-        print("1") ELSE print("0") FI
-    OD;
-    print(newline)
+      FI
+    OD
   OD;
   # update universe to the next generation (stored in cells) by reference #
-  FOR i TO size DO FOR ii TO size DO alive OF REF UNIVERSE(universe)[i][ii] := cells[i][ii] OD OD
+  FOR i TO size DO
+    FOR ii TO size DO
+      alive OF REF UNIVERSE(universe)[i][ii] := cells[i][ii]
+    OD
+  OD
 END;
 
 PROC init = UNIVERSE: BEGIN
@@ -115,6 +116,16 @@ COMMENT
 #
 END;
 
+PROC display = (UNIVERSE universe) VOID: BEGIN
+  FOR i TO size DO
+    FOR ii TO size DO
+      IF alive OF universe[i][ii] THEN
+        print("1") ELSE print("0") FI
+    OD;
+    print(newline)
+  OD
+END;
+
 # main entry label is unnecessary #
 main:
 # parethesis are interchangable with BEGIN..END blocks #
@@ -125,19 +136,12 @@ main:
 
   UNIVERSE universe := init();
 
-  FOR i TO size DO
-    FOR ii TO size DO
-      IF alive OF universe[i][ii] THEN
-        print("1") ELSE print("0") FI
-    OD;
-    print(newline)
-  OD;
-
-  print( ( newline, newline ) );
+  display(universe);
 
   FOR i TO generations DO
+    print(newline);
     tick(universe);
-    print( ( newline, newline ) )
+    display(universe)
   OD
 
 )
