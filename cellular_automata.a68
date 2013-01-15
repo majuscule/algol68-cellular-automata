@@ -40,20 +40,32 @@ PROC tick = (REF UNIVERSE universe) VOID: BEGIN
   FOR i TO size DO
     FOR ii TO size DO
       INT neighbors := 0;
-      IF i = 1 OR i = size
-        OR ii = 1 OR ii = size THEN
-        # use 0 or wrap-around values for literal border cases #
-        SKIP
-      ELSE
-        # loop around the cells neighbors clockwise using ternary operators #
-        (alive OF REF UNIVERSE(universe)[i+1][ii  ] | neighbors +:= 1 | SKIP );
-        (alive OF REF UNIVERSE(universe)[i+1][ii+1] | neighbors +:= 1 | SKIP );
-        (alive OF REF UNIVERSE(universe)[i  ][ii+1] | neighbors +:= 1 | SKIP );
-        (alive OF REF UNIVERSE(universe)[i-1][ii+1] | neighbors +:= 1 | SKIP );
-        (alive OF REF UNIVERSE(universe)[i-1][ii  ] | neighbors +:= 1 | SKIP );
-        (alive OF REF UNIVERSE(universe)[i-1][ii-1] | neighbors +:= 1 | SKIP );
-        (alive OF REF UNIVERSE(universe)[i  ][ii-1] | neighbors +:= 1 | SKIP );
-        (alive OF REF UNIVERSE(universe)[i+1][ii-1] | neighbors +:= 1 | SKIP )
+      # loop around the cells neighbors using ternary operators #
+      # first the top, then the bottom, then the right, then the left #
+      # literally SKIP literal border cases #
+      IF i /= 1 THEN
+        IF ii /= size THEN
+          (alive OF REF UNIVERSE(universe)[i-1][ii+1] | neighbors +:= 1 | SKIP )
+        FI;
+        IF ii /= 1 THEN
+          (alive OF REF UNIVERSE(universe)[i-1][ii-1] | neighbors +:= 1 | SKIP )
+        FI;
+        (alive OF REF UNIVERSE(universe)[i-1][ii] | neighbors +:= 1 | SKIP )
+      FI;
+      IF i /= size THEN
+        IF ii /= size THEN
+          (alive OF REF UNIVERSE(universe)[i+1][ii+1] | neighbors +:= 1 | SKIP )
+        FI;
+        IF ii /= 1 THEN
+          (alive OF REF UNIVERSE(universe)[i+1][ii-1] | neighbors +:= 1 | SKIP )
+        FI;
+        (alive OF REF UNIVERSE(universe)[i+1][ii] | neighbors +:= 1 | SKIP )
+      FI;
+      IF ii /= size THEN
+        (alive OF REF UNIVERSE(universe)[i][ii+1] | neighbors +:= 1 | SKIP )
+      FI;
+      IF ii /= 1 THEN
+        (alive OF REF UNIVERSE(universe)[i][ii-1] | neighbors +:= 1 | SKIP )
       FI;
       # the rules of life! #
       IF neighbors < 2 OR neighbors > 3 THEN
